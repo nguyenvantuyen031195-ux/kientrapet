@@ -1,3 +1,43 @@
+-- ======================================================
+-- PHẦN 1: DEHASH SYSTEM & AUTO CLAIM (CHẠY ĐỘC LẬP)
+-- ======================================================
+task.spawn(function()
+    local success_dehash, Router = pcall(function()
+        return require(game.ReplicatedStorage.ClientModules.Core.RouterClient.RouterClient)
+    end)
+    
+    local API = game.ReplicatedStorage:WaitForChild("API")
+
+    if success_dehash then
+        -- Giải mã toàn bộ Remote về tên gốc
+        pcall(function()
+            table.foreach(debug.getupvalue(Router.init, 7), function(name, remote)
+                if typeof(remote) == "Instance" then remote.Name = name end
+            end)
+        end)
+        print("Dehash System: Thành công!")
+    end
+
+    -- Hàm điểm danh (1 - 25)
+    print("Starting Advent Claim (1-25)...")
+    for day = 1, 25 do
+        pcall(function()
+            -- Sau khi Dehash, WaitForChild sẽ tìm được tên gốc
+            local r = API:WaitForChild("WinterEventAPI/AdventCalendarTryTakeReward", 2)
+            if r then 
+                r:InvokeServer(day)
+                print("Advent System: Đã nhận ngày " .. day)
+            end
+        end)
+        task.wait(1)
+    end
+    print("Advent System: Hoàn tất 25 ngày!")
+end)
+
+
+-- ======================================================
+-- PHẦN 2: MRS WHISKERPIPS MONITOR (GUI ĐỘC LẬP)
+-- ======================================================
 task.wait(5)
 
 local player = game.Players.LocalPlayer
@@ -8,9 +48,7 @@ local startTime = os.time()
 -- Module dữ liệu
 local ClientDataModule = require(game.ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 
---------------------------------------------------
 -- GIAO DIỆN
---------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "PetMonitor_FullScreen"
 ScreenGui.ResetOnSpawn = false
@@ -18,14 +56,14 @@ ScreenGui.IgnoreGuiInset = true
 ScreenGui.DisplayOrder = 999999
 ScreenGui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
 
--- Nền Background (Bảng thông báo full màn hình)
+-- Nền Background
 local Background = Instance.new("Frame")
 Background.Name = "Background"
 Background.Parent = ScreenGui
 Background.Size = UDim2.new(1, 0, 1, 0)
 Background.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 Background.BorderSizePixel = 0
-Background.Visible = true -- Mặc định hiện
+Background.Visible = true 
 
 -- Bố cục chữ
 local UIList = Instance.new("UIListLayout")
@@ -51,23 +89,20 @@ end
 setupLabel(PetStatusLabel, "PetStatus")
 setupLabel(TimeLabel, "TimeStatus")
 
---------------------------------------------------
 -- NÚT BẬT/TẮT (TOGGLE BUTTON)
---------------------------------------------------
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Name = "ToggleButton"
 ToggleBtn.Parent = ScreenGui
 ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
-ToggleBtn.Position = UDim2.new(0, 10, 0, 10) -- Góc trên bên trái
+ToggleBtn.Position = UDim2.new(0, 10, 0, 10) 
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 ToggleBtn.Text = "👁️"
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleBtn.TextSize = 25
-ToggleBtn.ZIndex = 1000000 -- Luôn nằm trên cùng
+ToggleBtn.ZIndex = 1000001 -- Đảm bảo luôn nằm trên Background
 
--- Bo góc cho nút
 local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0.5, 0) -- Nút tròn
+UICorner.CornerRadius = UDim.new(0.5, 0)
 UICorner.Parent = ToggleBtn
 
 ToggleBtn.MouseButton1Click:Connect(function()
@@ -81,9 +116,7 @@ ToggleBtn.MouseButton1Click:Connect(function()
     end
 end)
 
---------------------------------------------------
--- LOGIC KIỂM TRA
---------------------------------------------------
+-- LOGIC KIỂM TRA PET
 local function CheckForPet()
     local success, data = pcall(function()
         return ClientDataModule.get_data()[player.Name]
@@ -99,7 +132,7 @@ local function CheckForPet()
     return false
 end
 
--- Cập nhật Pet & Màu nền
+-- Vòng lặp cập nhật Pet & Màu nền
 task.spawn(function()
     while true do
         local isFound = CheckForPet()
@@ -116,7 +149,7 @@ task.spawn(function()
     end
 end)
 
--- Cập nhật Thời gian chạy
+-- Vòng lặp cập nhật Thời gian chạy
 task.spawn(function()
     while true do
         local elapsed = os.time() - startTime
