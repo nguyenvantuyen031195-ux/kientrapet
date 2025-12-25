@@ -1,8 +1,8 @@
 --[[ 
-    MRS WHISKERPIPS MONITOR - FULLSCREEN EDITION
+    MRS WHISKERPIPS MONITOR - FULLSCREEN EDITION + TOGGLE BUTTON
     - Màu nền: Xanh (Có Pet) / Đỏ (Không có)
-    - Cập nhật: 60 giây/lần
-    - Thời gian chạy script: Cập nhật mỗi giây
+    - Cập nhật: 30 giây/lần (Theo biến CHECK_INTERVAL)
+    - Nút Toggle: Nằm ở góc trên bên trái để ẩn/hiện GUI
 ]]
 
 task.wait(5)
@@ -16,32 +16,33 @@ local startTime = os.time()
 local ClientDataModule = require(game.ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
 
 --------------------------------------------------
--- GIAO DIỆN FULL MÀN HÌNH
+-- GIAO DIỆN
 --------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-local Background = Instance.new("Frame")
-local UIList = Instance.new("UIListLayout")
-local PetStatusLabel = Instance.new("TextLabel")
-local TimeLabel = Instance.new("TextLabel")
-
 ScreenGui.Name = "PetMonitor_FullScreen"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.IgnoreGuiInset = true -- Để tràn toàn bộ màn hình, kể cả thanh menu Roblox
+ScreenGui.IgnoreGuiInset = true 
 ScreenGui.DisplayOrder = 999999
 ScreenGui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
 
--- Nền Background
+-- Nền Background (Bảng thông báo full màn hình)
+local Background = Instance.new("Frame")
 Background.Name = "Background"
 Background.Parent = ScreenGui
-Background.Size = UDim2.new(1, 0, 1, 0) -- Full màn hình
-Background.BackgroundColor3 = Color3.fromRGB(40, 40, 40) -- Màu xám ban đầu
+Background.Size = UDim2.new(1, 0, 1, 0)
+Background.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 Background.BorderSizePixel = 0
+Background.Visible = true -- Mặc định hiện
 
 -- Bố cục chữ
+local UIList = Instance.new("UIListLayout")
 UIList.Parent = Background
 UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 UIList.VerticalAlignment = Enum.VerticalAlignment.Center
 UIList.Padding = UDim.new(0.05, 0)
+
+local PetStatusLabel = Instance.new("TextLabel")
+local TimeLabel = Instance.new("TextLabel")
 
 local function setupLabel(label, name)
     label.Name = name
@@ -56,6 +57,36 @@ end
 
 setupLabel(PetStatusLabel, "PetStatus")
 setupLabel(TimeLabel, "TimeStatus")
+
+--------------------------------------------------
+-- NÚT BẬT/TẮT (TOGGLE BUTTON)
+--------------------------------------------------
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Name = "ToggleButton"
+ToggleBtn.Parent = ScreenGui
+ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
+ToggleBtn.Position = UDim2.new(0, 10, 0, 10) -- Góc trên bên trái
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ToggleBtn.Text = "👁️"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.TextSize = 25
+ToggleBtn.ZIndex = 1000000 -- Luôn nằm trên cùng
+
+-- Bo góc cho nút
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0.5, 0) -- Nút tròn
+UICorner.Parent = ToggleBtn
+
+ToggleBtn.MouseButton1Click:Connect(function()
+    Background.Visible = not Background.Visible
+    if Background.Visible then
+        ToggleBtn.Text = "👁️"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    else
+        ToggleBtn.Text = "❌"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+    end
+end)
 
 --------------------------------------------------
 -- LOGIC KIỂM TRA
@@ -75,16 +106,16 @@ local function CheckForPet()
     return false
 end
 
--- Vòng lặp cập nhật Pet & Màu nền (60 giây/lần)
+-- Cập nhật Pet & Màu nền
 task.spawn(function()
     while true do
         local isFound = CheckForPet()
         
         if isFound then
-            Background.BackgroundColor3 = Color3.fromRGB(0, 120, 0) -- Nền Xanh lá
+            Background.BackgroundColor3 = Color3.fromRGB(0, 120, 0) 
             PetStatusLabel.Text = "MRS WHISKERPIPS: <b>YES ✅</b>"
         else
-            Background.BackgroundColor3 = Color3.fromRGB(120, 0, 0) -- Nền Đỏ
+            Background.BackgroundColor3 = Color3.fromRGB(120, 0, 0) 
             PetStatusLabel.Text = "MRS WHISKERPIPS: <b>NO ❌</b>"
         end
         
@@ -92,7 +123,7 @@ task.spawn(function()
     end
 end)
 
--- Vòng lặp cập nhật Thời gian chạy (1 giây/lần)
+-- Cập nhật Thời gian chạy
 task.spawn(function()
     while true do
         local elapsed = os.time() - startTime
