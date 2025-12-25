@@ -1,0 +1,106 @@
+--[[ 
+    MRS WHISKERPIPS MONITOR - FULLSCREEN EDITION
+    - Màu nền: Xanh (Có Pet) / Đỏ (Không có)
+    - Cập nhật: 60 giây/lần
+    - Thời gian chạy script: Cập nhật mỗi giây
+]]
+
+task.wait(5)
+
+local player = game.Players.LocalPlayer
+local TARGET_PET = "winter_2025_mrs_whiskerpips"
+local CHECK_INTERVAL = 30 
+local startTime = os.time()
+
+-- Module dữ liệu
+local ClientDataModule = require(game.ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("ClientData"))
+
+--------------------------------------------------
+-- GIAO DIỆN FULL MÀN HÌNH
+--------------------------------------------------
+local ScreenGui = Instance.new("ScreenGui")
+local Background = Instance.new("Frame")
+local UIList = Instance.new("UIListLayout")
+local PetStatusLabel = Instance.new("TextLabel")
+local TimeLabel = Instance.new("TextLabel")
+
+ScreenGui.Name = "PetMonitor_FullScreen"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true -- Để tràn toàn bộ màn hình, kể cả thanh menu Roblox
+ScreenGui.DisplayOrder = 999999
+ScreenGui.Parent = (gethui and gethui()) or game:GetService("CoreGui")
+
+-- Nền Background
+Background.Name = "Background"
+Background.Parent = ScreenGui
+Background.Size = UDim2.new(1, 0, 1, 0) -- Full màn hình
+Background.BackgroundColor3 = Color3.fromRGB(40, 40, 40) -- Màu xám ban đầu
+Background.BorderSizePixel = 0
+
+-- Bố cục chữ
+UIList.Parent = Background
+UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIList.VerticalAlignment = Enum.VerticalAlignment.Center
+UIList.Padding = UDim.new(0.05, 0)
+
+local function setupLabel(label, name)
+    label.Name = name
+    label.Parent = Background
+    label.Size = UDim2.new(0.9, 0, 0.2, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.FredokaOne
+    label.TextScaled = true
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.RichText = true
+end
+
+setupLabel(PetStatusLabel, "PetStatus")
+setupLabel(TimeLabel, "TimeStatus")
+
+--------------------------------------------------
+-- LOGIC KIỂM TRA
+--------------------------------------------------
+local function CheckForPet()
+    local success, data = pcall(function()
+        return ClientDataModule.get_data()[player.Name]
+    end)
+
+    if success and data and data.inventory and data.inventory.pets then
+        for _, petData in pairs(data.inventory.pets) do
+            if petData.id == TARGET_PET then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+-- Vòng lặp cập nhật Pet & Màu nền (60 giây/lần)
+task.spawn(function()
+    while true do
+        local isFound = CheckForPet()
+        
+        if isFound then
+            Background.BackgroundColor3 = Color3.fromRGB(0, 120, 0) -- Nền Xanh lá
+            PetStatusLabel.Text = "MRS WHISKERPIPS: <b>CÓ ✅</b>"
+        else
+            Background.BackgroundColor3 = Color3.fromRGB(120, 0, 0) -- Nền Đỏ
+            PetStatusLabel.Text = "MRS WHISKERPIPS: <b>KHÔNG ❌</b>"
+        end
+        
+        task.wait(CHECK_INTERVAL)
+    end
+end)
+
+-- Vòng lặp cập nhật Thời gian chạy (1 giây/lần)
+task.spawn(function()
+    while true do
+        local elapsed = os.time() - startTime
+        local h = math.floor(elapsed / 3600)
+        local m = math.floor((elapsed % 3600) / 60)
+        local s = elapsed % 60
+        
+        TimeLabel.Text = string.format("TIME: %02d:%02d:%02d", h, m, s)
+        task.wait(1)
+    end
+end)
