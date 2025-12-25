@@ -82,10 +82,10 @@ task.spawn(function()
         
         if isFound then
             Background.BackgroundColor3 = Color3.fromRGB(0, 120, 0) -- Nền Xanh lá
-            PetStatusLabel.Text = "MRS WHISKERPIPS: <b>CÓ ✅</b>"
+            PetStatusLabel.Text = "MRS WHISKERPIPS: <b>YES ✅</b>"
         else
             Background.BackgroundColor3 = Color3.fromRGB(120, 0, 0) -- Nền Đỏ
-            PetStatusLabel.Text = "MRS WHISKERPIPS: <b>KHÔNG ❌</b>"
+            PetStatusLabel.Text = "MRS WHISKERPIPS: <b>NO ❌</b>"
         end
         
         task.wait(CHECK_INTERVAL)
